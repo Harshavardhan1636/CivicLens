@@ -3,7 +3,7 @@
 > **DevOps Lab Project** — Report potholes, garbage, broken streetlights with photo + GPS. Track status transparently: `Open → In-Progress → Resolved` on a live map.
 > Not another store clone — this is **Civic Tech / GovTech**, a real Smart-City problem.
 
-![Stack](https://img.shields.io/badge/Flask-3.0-teal) ![DB](https://img.shields.io/badge/SQLite-builtin-blue) ![Docker](https://img.shields.io/badge/Docker-ready-2496ED) ![Jenkins](https://img.shields.io/badge/Jenkins-build_3_green-D24939) ![Tests](https://img.shields.io/badge/pytest-14_passed-green)
+![Stack](https://img.shields.io/badge/Flask-3.0-teal) ![DB](https://img.shields.io/badge/SQLite-builtin-blue) ![Docker](https://img.shields.io/badge/Docker-ready-2496ED) ![Jenkins](https://img.shields.io/badge/Jenkins-pipeline_green-D24939) ![Tests](https://img.shields.io/badge/pytest-14_passed-green)
 
 **Live status (verified):** Jenkins build **SUCCESS** — app deployed at `http://localhost:5000` (seeded with 8 demo reports), Jenkins open at `http://localhost:8080` — no login (local lab).
 
