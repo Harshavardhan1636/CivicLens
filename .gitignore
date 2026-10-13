@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.db
+*.sqlite
+*.sqlite3
+civiclens.db
+uploads/*
+!uploads/.gitkeep
+.venv/
+venv/
+.env
+.pytest_cache/
+*.log
+.DS_Store
+Thumbs.db

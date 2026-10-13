@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CivicLens — Civic Issue Reporter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="nav-logo"><i class="fa-solid fa-city"></i></div>
+    <div>
+      <div class="nav-title">Civic<span>Lens</span></div>
+      <div class="nav-sub">Smart City Issue Tracker</div>
+    </div>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-nav-about" onclick="document.getElementById('aboutModal').classList.add('open')">About</button>
+    <button class="btn-nav-report" onclick="openReportModal()"><i class="fa-solid fa-plus"></i> Report an issue</button>
+  </div>
+</nav>
+
+<!-- Service header -->
+<section class="service-head">
+  <div class="service-head-inner">
+    <p class="overline">Civic reporting service</p>
+    <h1>Report a problem in your neighbourhood</h1>
+    <p class="lede">Spot a pothole, an overflowing bin or a broken streetlight? Send a report with a photo and location, then follow its progress from Open to Resolved.</p>
+    <div class="stats" id="heroStats">
+      <div class="stat"><span class="num" id="statTotal">—</span><span class="label">Reports filed</span></div>
+      <div class="stat"><span class="num" id="statOpen">—</span><span class="label">Open</span></div>
+      <div class="stat stat-accent"><span class="num" id="statResolved">—</span><span class="label">Resolved</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Main -->
+<div class="container">
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="view-toggle" role="tablist" aria-label="View">
+      <button class="view-btn active" id="btnGrid" onclick="setView('grid')"><i class="fa-solid fa-list"></i> List</button>
+      <button class="view-btn" id="btnMap" onclick="setView('map')"><i class="fa-solid fa-map"></i> Map</button>
+    </div>
+    <div class="toolbar-right">
+      <select class="select" id="sortSelect" onchange="fetchIssues()" aria-label="Sort reports">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="upvotes">Most upvoted</option>
+      </select>
+      <button class="btn-ghost" onclick="fetchIssues()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="search-wrap">
+      <label for="searchInput">Search reports</label>
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="search-input" id="searchInput" placeholder="Title, description or street name" oninput="debouncedFetch()">
+      </div>
+    </div>
+    <div class="filter-group">
+      <label for="statusFilter">Status</label>
+      <select class="select" id="statusFilter" onchange="fetchIssues()">
+        <option value="all">All statuses</option>
+        <option value="Open">Open</option>
+        <option value="In-Progress">In progress</option>
+        <option value="Resolved">Resolved</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Category pills -->
+  <div class="cat-pills" id="catPills"></div>
+
+  <!-- Map -->
+  <div id="map" class="map-hidden"></div>
+
+  <!-- Grid -->
+  <div class="issues-grid" id="issuesGrid"></div>
+  <div class="empty-state" id="emptyState" style="display:none">
+    <i class="fa-solid fa-inbox"></i>
+    <h3>No issues found</h3>
+    <p>Try adjusting filters or be the first to report an issue in your area.</p>
+    <button class="btn-primary" style="margin-top:14px" onclick="openReportModal()"><i class="fa-solid fa-plus"></i> Report First Issue</button>
+  </div>
+</div>
+
+<footer class="footer">
+  <strong>CivicLens</strong> — DevOps Lab Project &middot; Flask + SQLite + Docker + Jenkins CI/CD &middot; Built for Smart Cities
+</footer>
+
+<!-- Report Modal -->
+<div class="modal-overlay" id="reportModal" onclick="if(event.target===this)closeReportModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2>Report a civic issue</h2>
+        <p>Give the location and a short description. It takes under a minute.</p>
+      </div>
+      <button class="modal-close" onclick="closeReportModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-error" id="formError"></div>
+      <form id="reportForm" onsubmit="submitReport(event)" enctype="multipart/form-data">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Title *</label>
+            <input class="form-input" id="f_title" placeholder="e.g. Large pothole on MG Road near signal" required>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Category *</label>
+              <select class="form-select" id="f_category" required>
+                <option value="">Select category</option>
+                <option value="pothole">Pothole / Road damage</option>
+                <option value="garbage">Garbage / Waste</option>
+                <option value="streetlight">Streetlight</option>
+                <option value="water">Water supply / Leakage</option>
+                <option value="drainage">Drainage / Flooding</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Photo (optional)</label>
+              <input type="file" class="form-input" id="f_image" accept=".png,.jpg,.jpeg,.webp,.gif">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description *</label>
+            <textarea class="form-textarea" id="f_description" placeholder="Describe the issue in detail — what, where, how severe..." required></textarea>
+            <span class="form-hint">At least 10 characters.</span>
+          </div>
+          <div class="form-group">
+            <label>Address / Landmark *</label>
+            <input class="form-input" id="f_address" placeholder="e.g. Near City Hospital, MG Road, Pune" required>
+          </div>
+          <div class="form-group">
+            <label>Location (latitude / longitude) *</label>
+            <div class="coord-row">
+              <input class="form-input" id="f_lat" placeholder="Latitude" required>
+              <input class="form-input" id="f_lng" placeholder="Longitude" required>
+              <button type="button" class="btn-locate" onclick="useMyLocation()"><i class="fa-solid fa-location-crosshairs"></i> Use my location</button>
+            </div>
+            <span class="form-hint">Click "Use my location" or pick on the map. Tip: try 18.5204, 73.8567 for Pune.</span>
+          </div>
+          <button type="submit" class="btn-primary" id="submitBtn" style="justify-content:center; padding:10px; width:100%">
+            Submit report
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetailModal()">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-header">
+      <div>
+        <h2 id="d_title"></h2>
+        <p id="d_meta"></p>
+      </div>
+      <button class="modal-close" onclick="closeDetailModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="d_image_wrap"></div>
+      <div class="detail-grid">
+        <div id="d_badges" style="display:flex; gap:6px; flex-wrap:wrap"></div>
+        <div class="detail-desc" id="d_desc"></div>
+        <div class="detail-row"><span class="k">Address</span><span class="v" id="d_address"></span></div>
+        <div class="detail-row"><span class="k">Coordinates</span><span class="v" id="d_coords"></span></div>
+        <div class="detail-row"><span class="k">Reported</span><span class="v" id="d_date"></span></div>
+        <div style="margin-top:4px">
+          <div class="status-label">Update status (admin)</div>
+          <div class="status-actions">
+            <button class="status-btn" id="btnStatusOpen" onclick="changeStatus('Open')">Open</button>
+            <button class="status-btn" id="btnStatusProgress" onclick="changeStatus('In-Progress')">In progress</button>
+            <button class="status-btn" id="btnStatusResolved" onclick="changeStatus('Resolved')">Resolved</button>
+          </div>
+        </div>
+        <div class="detail-actions">
+          <button class="btn-primary" style="flex:1; justify-content:center" onclick="upvoteDetail()"><i class="fa-solid fa-arrow-up"></i> Upvote (<span id="d_upvotes">0</span>)</button>
+          <button class="btn-danger" onclick="deleteDetail()"><i class="fa-solid fa-trash"></i> Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- About Modal -->
+<div class="modal-overlay" id="aboutModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div><h2>About CivicLens</h2><p>DevOps Lab — Full CI/CD Project</p></div>
+      <button class="modal-close" onclick="document.getElementById('aboutModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body about-body">
+      <p><strong>Problem:</strong> Potholes, overflowing bins and broken streetlights go unreported because there is no simple local channel. Helplines are slow and give no tracking.</p>
+      <p><strong>Solution:</strong> CivicLens lets residents report an issue with a photo and location, see every report on a live map, upvote the urgent ones, and follow each case from Open to Resolved.</p>
+      <p><strong>How it is built:</strong> Python Flask and SQLite, Leaflet maps, Docker and docker-compose, and a Jenkins pipeline (checkout, test, build, deploy) with pytest as the quality gate.</p>
+      <div class="about-tags">
+        <span class="badge badge-category">Dockerized</span>
+        <span class="badge badge-category">Jenkins CI/CD</span>
+        <span class="badge badge-category">14 tests passing</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
