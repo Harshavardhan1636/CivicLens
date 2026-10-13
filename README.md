@@ -5,7 +5,7 @@
 
 ![Stack](https://img.shields.io/badge/Flask-3.0-teal) ![DB](https://img.shields.io/badge/SQLite-builtin-blue) ![Docker](https://img.shields.io/badge/Docker-ready-2496ED) ![Jenkins](https://img.shields.io/badge/Jenkins-build_3_green-D24939) ![Tests](https://img.shields.io/badge/pytest-14_passed-green)
 
-**Live status (verified):** Jenkins build **#3 SUCCESS** — app deployed at `http://localhost:5000`, Jenkins at `http://localhost:8080` (job `civiclens-pipeline`).
+**Live status (verified):** Jenkins build **SUCCESS** — app deployed at `http://localhost:5000` (seeded with 8 demo reports), Jenkins open at `http://localhost:8080` — no login (local lab).
 
 ---
 
@@ -31,6 +31,7 @@
 | 1 | Report issue (photo upload ≤5MB, GPS, category, address) | CREATE |
 | 2 | List view with search, category pills, status filter, sort (newest/oldest/upvotes) | READ |
 | 3 | Live Leaflet map with color-coded markers (brown Open / blue In-Progress / green Resolved) | READ |
+| 3b | New-user guidance: 3-step how-it-works strip, first-visit hint bar (remembered), `?` tooltips on filters/sort/upvote | UX |
 | 4 | Detail modal with full info + image | READ |
 | 5 | Admin status update (Open / In-Progress / Resolved) | UPDATE |
 | 6 | Upvote to prioritize (1 click → +1) | UPDATE |
@@ -58,7 +59,7 @@
 ```
 .
 ├── app.py                 # Flask app: API + SQLite + upload handling
-├── seed_demo.py           # Seeds 6 realistic demo issues (for seminar)
+├── seed_demo.py           # Seeds 8 realistic demo issues (for seminar)
 ├── requirements.txt       # Flask, Flask-Cors, Werkzeug, gunicorn, pytest
 ├── Dockerfile             # python:3.11-slim → gunicorn, healthcheck
 ├── docker-compose.yml     # app + named volume + uploads bind mount
@@ -165,8 +166,8 @@ Checkout → Install Dependencies → Test → Docker Build → Deploy
 | Docker Build | `docker build -t civiclens:<BUILD_NUMBER>` + tag `latest` |
 | Deploy | `compose down → compose up -d --build` → healthcheck **inside** the app container (`compose exec -T app curl …`) with retries |
 
-**This repo's Jenkins (already installed, build #3 green):**
-- URL: `http://localhost:8080`, login `admin` / `admin123`
+**This repo's Jenkins (already installed, green builds):**
+- URL: `http://localhost:8080` — **no login** (security disabled for the local lab)
 - Job: `civiclens-pipeline` (Pipeline from SCM → this repo, `Jenkinsfile`)
 - Jenkins itself runs in Docker (`jenkins/jenkins:lts`); the agent has Python 3, Docker CLI + Compose v2 via the host socket, and git + pipeline plugins
 - Start it with `docker start jenkins`, then *Build Now* any time

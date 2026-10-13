@@ -10,6 +10,7 @@ def client():
     db_fd, db_path = tempfile.mkstemp(suffix=".db")
     app_module.DATABASE = db_path
     app_module.UPLOAD_FOLDER = tempfile.mkdtemp()
+    app_module.app.config["UPLOAD_FOLDER"] = app_module.UPLOAD_FOLDER
     app_module.init_db()
     app_module.app.config["TESTING"] = True
     app_module.app.config["DATABASE"] = db_path

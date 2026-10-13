@@ -6,12 +6,11 @@ A Flask application for reporting and tracking civic issues.
 import os
 import sqlite3
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from flask import Flask, jsonify, request, render_template, send_from_directory, g
 from flask_cors import CORS
-from werkzeug.utils import secure_filename
 
 # ── Config ──────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).parent.resolve()
@@ -73,6 +72,11 @@ def row_to_dict(row):
     return dict(row) if row else None
 
 
+def _utcnow():
+    """Timezone-aware UTC timestamp (ISO 8601)."""
+    return datetime.now(timezone.utc).isoformat()
+
+
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -94,7 +98,7 @@ def uploaded_file(filename):
 
 @app.route("/api/health")
 def health():
-    return jsonify({"status": "ok", "service": "CivicLens", "timestamp": datetime.utcnow().isoformat()})
+    return jsonify({"status": "ok", "service": "CivicLens", "timestamp": _utcnow()})
 
 
 # ── Issues API ──────────────────────────────────────────────────────
@@ -149,12 +153,12 @@ def create_issue():
         file = request.files.get("image")
     else:
         data = request.get_json(force=True, silent=True) or {}
-        title = str(data.get("title", "")).strip()
-        description = str(data.get("description", "")).strip()
-        category = str(data.get("category", "")).strip()
-        latitude = str(data.get("latitude", "")).strip()
-        longitude = str(data.get("longitude", "")).strip()
-        address = str(data.get("address", "")).strip()
+        title = str(data.get("title") or "").strip()
+        description = str(data.get("description") or "").strip()
+        category = str(data.get("category") or "").strip()
+        latitude = str(data.get("latitude") if data.get("latitude") is not None else "").strip()
+        longitude = str(data.get("longitude") if data.get("longitude") is not None else "").strip()
+        address = str(data.get("address") or "").strip()
         file = None
 
     # Validation
@@ -188,7 +192,7 @@ def create_issue():
         image_path = filename
 
     issue_id = uuid.uuid4().hex[:8]
-    now = datetime.utcnow().isoformat()
+    now = _utcnow()
 
     db = get_db()
     db.execute("""
@@ -223,7 +227,7 @@ def update_status(issue_id):
     if not row:
         return jsonify({"error": "Issue not found"}), 404
 
-    now = datetime.utcnow().isoformat()
+    now = _utcnow()
     db.execute("UPDATE issues SET status = ?, updated_at = ? WHERE id = ?", (new_status, now, issue_id))
     db.commit()
 
@@ -238,7 +242,7 @@ def upvote_issue(issue_id):
     if not row:
         return jsonify({"error": "Issue not found"}), 404
 
-    db.execute("UPDATE issues SET upvotes = upvotes + 1, updated_at = ? WHERE id = ?", (datetime.utcnow().isoformat(), issue_id))
+    db.execute("UPDATE issues SET upvotes = upvotes + 1, updated_at = ? WHERE id = ?", (_utcnow(), issue_id))
     db.commit()
 
     updated = db.execute("SELECT * FROM issues WHERE id = ?", (issue_id,)).fetchone()
@@ -252,10 +256,10 @@ def delete_issue(issue_id):
     if not row:
         return jsonify({"error": "Issue not found"}), 404
 
-    # Delete associated image
+    # Delete associated image (basename: never trust a stored path)
     if row["image_path"]:
         try:
-            os.remove(os.path.join(app.config["UPLOAD_FOLDER"], row["image_path"]))
+            os.remove(os.path.join(app.config["UPLOAD_FOLDER"], os.path.basename(row["image_path"])))
         except OSError:
             pass
 

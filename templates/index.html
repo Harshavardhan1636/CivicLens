@@ -33,13 +33,25 @@
     <p class="overline">Civic reporting service</p>
     <h1>Report a problem in your neighbourhood</h1>
     <p class="lede">Spot a pothole, an overflowing bin or a broken streetlight? Send a report with a photo and location, then follow its progress from Open to Resolved.</p>
-    <div class="stats" id="heroStats">
+    <div class="stats" id="statsStrip">
       <div class="stat"><span class="num" id="statTotal">—</span><span class="label">Reports filed</span></div>
       <div class="stat"><span class="num" id="statOpen">—</span><span class="label">Open</span></div>
       <div class="stat stat-accent"><span class="num" id="statResolved">—</span><span class="label">Resolved</span></div>
     </div>
+    <ol class="how-it-works" aria-label="How this service works">
+      <li><span class="step-n">1</span><span><strong>Report it.</strong> Photo, location and a short description — no account needed.</span></li>
+      <li><span class="step-n">2</span><span><strong>Community prioritises.</strong> Upvote the issues that affect you most.</span></li>
+      <li><span class="step-n">3</span><span><strong>Track to resolved.</strong> Follow each case from Open to Resolved.</span></li>
+    </ol>
   </div>
 </section>
+
+<!-- First-visit hint (dismissible, remembered) -->
+<div class="welcome-bar" id="welcomeBar" hidden>
+  <i class="fa-solid fa-circle-info"></i>
+  <span><strong>New here?</strong> Pick a report below to see its full story, or press <strong>Report an issue</strong> to file your own — it takes under a minute.</span>
+  <button class="welcome-close" onclick="dismissWelcome()" aria-label="Dismiss hint"><i class="fa-solid fa-xmark"></i></button>
+</div>
 
 <!-- Main -->
 <div class="container">
@@ -47,10 +59,11 @@
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="view-toggle" role="tablist" aria-label="View">
-      <button class="view-btn active" id="btnGrid" onclick="setView('grid')"><i class="fa-solid fa-list"></i> List</button>
-      <button class="view-btn" id="btnMap" onclick="setView('map')"><i class="fa-solid fa-map"></i> Map</button>
+      <button class="view-btn active" id="btnGrid" onclick="setView('grid')" title="Browse reports as cards"><i class="fa-solid fa-list"></i> List</button>
+      <button class="view-btn" id="btnMap" onclick="setView('map')" title="See all reports pinned on a live map"><i class="fa-solid fa-map"></i> Map</button>
     </div>
     <div class="toolbar-right">
+      <label class="inline-label" for="sortSelect">Sort <span class="hint-dot" title="Newest shows the latest reports first. Most upvoted surfaces what the community cares about.">?</span></label>
       <select class="select" id="sortSelect" onchange="fetchIssues()" aria-label="Sort reports">
         <option value="newest">Newest first</option>
         <option value="oldest">Oldest first</option>
@@ -70,7 +83,7 @@
       </div>
     </div>
     <div class="filter-group">
-      <label for="statusFilter">Status</label>
+      <label for="statusFilter">Status <span class="hint-dot" title="Open: reported, awaiting action. In progress: work has started. Resolved: fixed and verified.">?</span></label>
       <select class="select" id="statusFilter" onchange="fetchIssues()">
         <option value="all">All statuses</option>
         <option value="Open">Open</option>

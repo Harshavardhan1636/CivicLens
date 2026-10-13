@@ -18,6 +18,10 @@ const CATS = [
 
 const STATUS_CLASS = { 'Open': 'badge-open', 'In-Progress': 'badge-inprogress', 'Resolved': 'badge-resolved' };
 
+function upvoteLabel(n) {
+  return `${n} upvote${n === 1 ? '' : 's'}`;
+}
+
 function catDot(cat) {
   const c = CATS.find(x => x.id === cat);
   if (!c || !c.color) return '';
@@ -29,7 +33,23 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCatPills();
   fetchIssues();
   fetchStats();
+  showWelcomeOnce();
 });
+
+// First-visit hint: show once, remember dismissal
+function showWelcomeOnce() {
+  try {
+    if (!localStorage.getItem('civiclens_welcomed')) {
+      document.getElementById('welcomeBar').hidden = false;
+    }
+  } catch {
+    document.getElementById('welcomeBar').hidden = false;
+  }
+}
+function dismissWelcome() {
+  document.getElementById('welcomeBar').hidden = true;
+  try { localStorage.setItem('civiclens_welcomed', '1'); } catch {}
+}
 
 // Close any open modal with Escape
 document.addEventListener('keydown', (e) => {
@@ -144,7 +164,7 @@ function renderGrid() {
         </div>
       </div>
       <div class="card-footer">
-        <button class="upvote-btn" onclick="event.stopPropagation(); upvote('${iss.id}')">
+        <button class="upvote-btn" onclick="event.stopPropagation(); upvote('${iss.id}')" title="Upvote — pushes this report higher so it gets fixed sooner">
           <i class="fa-solid fa-arrow-up"></i> ${iss.upvotes}
         </button>
         <span class="card-date"><i class="fa-regular fa-clock"></i> ${timeAgo(iss.created_at)}</span>
@@ -262,7 +282,7 @@ function openDetail(id) {
   if (!iss) return;
   currentDetailId = id;
   document.getElementById('d_title').textContent = iss.title;
-  document.getElementById('d_meta').textContent = `${iss.category} · ${timeAgo(iss.created_at)} · ${iss.upvotes} upvotes`;
+  document.getElementById('d_meta').textContent = `${iss.category} · ${timeAgo(iss.created_at)} · ${upvoteLabel(iss.upvotes)}`;
   document.getElementById('d_desc').textContent = iss.description;
   document.getElementById('d_address').textContent = iss.address;
   document.getElementById('d_coords').textContent = `${iss.latitude.toFixed(5)}, ${iss.longitude.toFixed(5)}`;
@@ -313,7 +333,7 @@ async function upvoteDetail() {
   const iss = issues.find(x => x.id === currentDetailId);
   if (iss) {
     document.getElementById('d_upvotes').textContent = iss.upvotes;
-    document.getElementById('d_meta').textContent = `${iss.category} · ${timeAgo(iss.created_at)} · ${iss.upvotes} upvotes`;
+    document.getElementById('d_meta').textContent = `${iss.category} · ${timeAgo(iss.created_at)} · ${upvoteLabel(iss.upvotes)}`;
   }
 }
 

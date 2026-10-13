@@ -12,6 +12,7 @@ services:
       - DATABASE_PATH=/app/data/civiclens.db
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
+    init: true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
       interval: 30s
