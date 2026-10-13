@@ -65,11 +65,16 @@ pipeline {
                     if (isUnix()) {
                         sh 'docker compose down --remove-orphans || true'
                         sh 'docker compose up -d --build'
-                        sh 'sleep 8 && curl -s http://localhost:5000/api/health'
+                        sh '''for i in $(seq 1 12); do
+                              if curl -sf http://localhost:5000/api/health; then exit 0; fi
+                              echo "Waiting for app… ($i/12)"
+                              sleep 5
+                            done
+                            echo "App did not become healthy"; docker compose logs --tail 20 app; exit 1'''
                     } else {
                         bat 'docker compose down --remove-orphans || echo "nothing to stop"'
                         bat 'docker compose up -d --build'
-                        bat 'powershell -Command "Start-Sleep -Seconds 8; Invoke-RestMethod http://localhost:5000/api/health | ConvertTo-Json"'
+                        bat 'powershell -Command "$ok=$false; for ($i=1; $i -le 12 -and -not $ok; $i++) { try { Invoke-RestMethod http://localhost:5000/api/health | Out-Null; $ok=$true } catch { Write-Host \\"Waiting for app... ($i/12)\\"; Start-Sleep -Seconds 5 } }; if (-not $ok) { exit 1 }; Invoke-RestMethod http://localhost:5000/api/health | ConvertTo-Json"'
                     }
                 }
             }
