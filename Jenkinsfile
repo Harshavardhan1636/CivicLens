@@ -66,7 +66,7 @@ pipeline {
                         sh 'docker compose down --remove-orphans || true'
                         sh 'docker compose up -d --build'
                         sh '''for i in $(seq 1 12); do
-                              if curl -sf http://localhost:5000/api/health; then exit 0; fi
+                              if docker compose exec -T app curl -sf http://localhost:5000/api/health; then exit 0; fi
                               echo "Waiting for app… ($i/12)"
                               sleep 5
                             done
