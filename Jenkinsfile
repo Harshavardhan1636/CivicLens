@@ -1,10 +1,11 @@
+// CivicLens CI/CD — works on any agent (Linux `sh` or Windows `bat`).
+// Stages: Checkout -> Install -> Test (quality gate) -> Docker Build -> Deploy.
 pipeline {
     agent any
 
     environment {
         IMAGE_NAME = 'civiclens'
         IMAGE_TAG  = "${env.BUILD_NUMBER ?: 'latest'}"
-        CONTAINER  = 'civiclens-app'
     }
 
     stages {
@@ -19,32 +20,58 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo 'Installing Python dependencies…'
-                bat 'pip install -r requirements.txt'
+                script {
+                    if (isUnix()) {
+                        sh 'pip3 install --break-system-packages -r requirements.txt || pip3 install -r requirements.txt'
+                    } else {
+                        bat 'pip install -r requirements.txt'
+                    }
+                }
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Running pytest suite…'
-                bat 'python -m pytest tests/ -v --tb=short'
+                echo 'Running pytest suite (quality gate)…'
+                script {
+                    if (isUnix()) {
+                        sh 'python3 -m pytest tests/ -v --tb=short'
+                    } else {
+                        bat 'python -m pytest tests/ -v --tb=short'
+                    }
+                }
             }
         }
 
         stage('Docker Build') {
             steps {
                 echo "Building Docker image ${IMAGE_NAME}:${IMAGE_TAG}…"
-                bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-                bat "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
+                script {
+                    if (isUnix()) {
+                        sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                        sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
+                    } else {
+                        bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                        bat "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
+                    }
+                }
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'Deploying with docker-compose…'
-                bat 'docker-compose down  || echo "nothing to stop"'
-                bat 'docker-compose up -d --build'
-                echo 'Waiting for healthcheck…'
-                bat 'powershell -Command "Start-Sleep -Seconds 8; curl -s http://localhost:5000/api/health | Out-String"'
+                echo 'Deploying with Docker Compose…'
+                script {
+                    if (isUnix()) {
+                        sh 'docker compose down --remove-orphans || true'
+                        sh 'docker compose up -d --build'
+                        sh 'sleep 8 && curl -s http://localhost:5000/api/health'
+                    } else {
+                        bat 'docker compose down --remove-orphans || echo "nothing to stop"'
+                        bat 'docker compose up -d --build'
+                        bat 'powershell -Command "Start-Sleep -Seconds 8; Invoke-RestMethod http://localhost:5000/api/health | ConvertTo-Json"'
+                    }
+                }
             }
         }
     }
@@ -54,7 +81,7 @@ pipeline {
             echo 'CivicLens pipeline succeeded! App live at http://localhost:5000'
         }
         failure {
-            echo 'Pipeline failed — check stage logs above.'
+            echo 'Pipeline failed — check the failing stage above. No image was deployed.'
         }
         always {
             echo 'Build finished.'
