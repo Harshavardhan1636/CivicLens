@@ -95,19 +95,25 @@ stage('Checkout')  → checkout scm
 stage('Install')   → pip install -r requirements.txt
 stage('Test')      → pytest tests/ -v   [GATE: fail = no build]
 stage('Build')     → docker build -t civiclens:<BUILD_NUMBER> + :latest
-stage('Deploy')    → compose down → compose up -d --build → curl /api/health
+stage('Deploy')    → compose down → compose up -d --build → healthcheck INSIDE app container (compose exec + curl, retried 12×)
 post { success/failure/always }
 ```
+
+The Jenkinsfile is cross-platform: `isUnix()` selects `sh` (Linux agents) or `bat` (Windows agents).
 
 **DevOps concepts demonstrated:** automated testing as a quality gate, immutable image per build (`BUILD_NUMBER` tag), declarative redeploy, health verification, separation of state (volumes) from code (image).
 
 ### 5.3 How to run the pipeline (examiner steps)
 
-1. Start Docker Desktop → `docker --version` responds.
-2. `docker compose up -d --build` → open `http://localhost:5000` → *(app live)*.
-3. `python -m pytest tests/ -v` → *14 passed*.
-4. In Jenkins: New Pipeline job → repo URL → Build Now → console shows all 5 stages green → app redeployed.
-5. Push a commit (e.g., edit title) → webhook (optional) rebuilds automatically.
+1. Start Docker Desktop → `docker info` responds.
+2. Start Jenkins: `docker start jenkins` → open `http://localhost:8080` (login `admin` / `admin123`).
+3. Open job `civiclens-pipeline` → *Build Now* → console shows all 5 stages green → app redeployed at `http://localhost:5000`.
+4. Verify: `curl http://localhost:5000/api/health` → `{"status":"ok",…}`; `python -m pytest tests/ -v` → *14 passed*.
+5. Push a commit → *Build Now* again (or add a GitHub webhook for auto-build).
+
+**Verified build history:** #1 failed on a fixed 8s deploy wait (cold-start race), #2 failed because the agent's `localhost` isn't the app's network namespace — both fixed (retry loop + `compose exec` healthcheck). **#3 SUCCESS.**
+
+**Jenkins installation used here:** `jenkins/jenkins:lts` container (port 8080), admin user via init script, `git` + `workflow-aggregator` plugins, agent toolchain (Python 3 + pip, Docker CLI + Compose v2 over the host socket). The pipeline checks out this public repo anonymously — no credentials to configure.
 
 ---
 
