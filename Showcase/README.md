@@ -40,8 +40,8 @@ All app/Jenkins screenshots are **1600 × 1000**; Docker Desktop screenshots are
 | `05-app-report-form.png` | Report form filled with title, category, description, address and coordinates |
 | `06-app-search-filter.png` | Search for “drain” → two matching reports |
 | `07-app-about.png` | About modal: problem, solution, stack and “14 tests passing” |
-| `08-docker-containers.png` | Docker Desktop → Containers: `jenkins` and `civiclens-app` running, plus the `civiclens-pipeline` Compose group |
-| `09-docker-images.png` | Docker Desktop → Images: per-build `civiclens:10` (plus tags 7/8/9/latest), Compose image `civiclens-pipeline-app` (235.63 MB), and base images — captured before the image cleanup |
+| `08-docker-containers.png` | Docker Desktop → Containers: `jenkins` and `civiclens-app` (running the `civiclens:latest` image) plus the `civiclens-pipeline` Compose group |
+| `09-docker-images.png` | Docker Desktop → Images after cleanup: only three images — `civiclens:latest` (235.76 MB) plus the `python:3.11-slim` and `jenkins/jenkins:lts` base images |
 | `10-jenkins-dashboard.png` | Jenkins dashboard: job green, last success **#10**, last duration 10 s |
 | `11-jenkins-job.png` | Job page: description, permalinks and build history (#10 latest) |
 | `12-jenkins-build.png` | Build #10 summary: success, commit, repository, “Took 10 sec” |
