@@ -106,12 +106,12 @@ The Jenkinsfile is cross-platform: `isUnix()` selects `sh` (Linux agents) or `ba
 ### 5.3 How to run the pipeline (examiner steps)
 
 1. Start Docker Desktop → `docker info` responds.
-2. Start Jenkins: `docker start jenkins` → open `http://localhost:8080` (login `admin` / `admin123`).
+2. Start Jenkins: `docker start jenkins` → open `http://localhost:8080` — no login (security disabled for the local lab).
 3. Open job `civiclens-pipeline` → *Build Now* → console shows all 5 stages green → app redeployed at `http://localhost:5000`.
 4. Verify: `curl http://localhost:5000/api/health` → `{"status":"ok",…}`; `python -m pytest tests/ -v` → *14 passed*.
 5. Push a commit → *Build Now* again (or add a GitHub webhook for auto-build).
 
-**Verified build history:** #1 failed on a fixed 8s deploy wait (cold-start race), #2 failed because the agent's `localhost` isn't the app's network namespace — both fixed (retry loop + `compose exec` healthcheck). **#3 SUCCESS.**
+**Verified build history:** #1 failed on a fixed 8s deploy wait (cold-start race), #2 failed because the agent's `localhost` isn't the app's network namespace — both fixed (retry loop + `compose exec` healthcheck). **#3 onward green; latest #10 SUCCESS (14 tests, healthy deploy).**
 
 **Jenkins installation used here:** `jenkins/jenkins:lts` container (port 8080), admin user via init script, `git` + `workflow-aggregator` plugins, agent toolchain (Python 3 + pip, Docker CLI + Compose v2 over the host socket). The pipeline checks out this public repo anonymously — no credentials to configure.
 

@@ -5,7 +5,9 @@
 
 ![Stack](https://img.shields.io/badge/Flask-3.0-teal) ![DB](https://img.shields.io/badge/SQLite-builtin-blue) ![Docker](https://img.shields.io/badge/Docker-ready-2496ED) ![Jenkins](https://img.shields.io/badge/Jenkins-pipeline_green-D24939) ![Tests](https://img.shields.io/badge/pytest-14_passed-green)
 
-**Live status (verified):** Jenkins build **SUCCESS** — app deployed at `http://localhost:5000` (seeded with 8 demo reports), Jenkins open at `http://localhost:8080` — no login (local lab).
+**Live status (verified):** Jenkins build **#10 SUCCESS** (14/14 tests, 10 s) — app deployed at `http://localhost:5000` (seeded with 8 demo reports), Jenkins open at `http://localhost:8080` — no login (local lab).
+
+**Showcase assets:** [`Showcase/`](Showcase/) — app, Docker and Jenkins screenshots plus the demo recordings.
 
 ---
 
@@ -166,7 +168,7 @@ Checkout → Install Dependencies → Test → Docker Build → Deploy
 | Docker Build | `docker build -t civiclens:<BUILD_NUMBER>` + tag `latest` |
 | Deploy | `compose down → compose up -d --build` → healthcheck **inside** the app container (`compose exec -T app curl …`) with retries |
 
-**This repo's Jenkins (already installed, green builds):**
+**This repo's Jenkins (already installed; latest build #10 SUCCESS):**
 - URL: `http://localhost:8080` — **no login** (security disabled for the local lab)
 - Job: `civiclens-pipeline` (Pipeline from SCM → this repo, `Jenkinsfile`)
 - Jenkins itself runs in Docker (`jenkins/jenkins:lts`); the agent has Python 3, Docker CLI + Compose v2 via the host socket, and git + pipeline plugins
@@ -207,7 +209,7 @@ Browser E2E also verified: report submit → detail → upvote → status change
 ## 11. Resume Line (copy-paste)
 
 > **CivicLens — Civic Issue Reporting Platform** | *Flask, SQLite, Leaflet, Docker, Jenkins*
-> Built a Smart-City issue tracker (report with photo+GPS, live map, upvote prioritization, Open→Resolved workflow). Containerized with Docker, automated CI/CD via Jenkins (test-gated build → deploy, 3 green builds), 14 pytest tests, healthchecks + persistent volumes.
+> Built a Smart-City issue tracker (report with photo+GPS, live map, upvote prioritization, Open→Resolved workflow). Containerized with Docker, automated CI/CD via Jenkins (test-gated build → deploy, 7 green builds; latest #10), 14 pytest tests, healthchecks + persistent volumes.
 
 ---
 

@@ -1,6 +1,11 @@
+# Fixed project name so local runs and Jenkins deployments share one stack
+# (container, network and the civiclens-data volume) instead of creating duplicates.
+name: civiclens-pipeline
+
 services:
   app:
     build: .
+    image: civiclens:latest
     container_name: civiclens-app
     ports:
       - "5000:5000"
