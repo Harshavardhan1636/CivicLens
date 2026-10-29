@@ -84,6 +84,22 @@ pipeline {
     post {
         success {
             echo 'CivicLens pipeline succeeded! App live at http://localhost:5000'
+            // Keep Docker Desktop clean: drop older per-build image tags so only the
+            // current build tag and `latest` survive. Never fails the build.
+            script {
+                try {
+                    if (isUnix()) {
+                        sh '''
+                          docker images --format '{{.Repository}}:{{.Tag}}' \
+                            | grep -E '^civiclens:[0-9]+$' \
+                            | grep -v ":${IMAGE_TAG}$" \
+                            | xargs -r docker rmi || true
+                        '''
+                    }
+                } catch (err) {
+                    echo "Old image-tag cleanup skipped: ${err}"
+                }
+            }
         }
         failure {
             echo 'Pipeline failed — check the failing stage above. No image was deployed.'
