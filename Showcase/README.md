@@ -7,6 +7,9 @@ project running on this machine: Flask app on `http://localhost:5000`, Jenkins o
 **Status at capture:** Jenkins build **#10 SUCCESS** · **14/14 pytest tests** · app healthy
 (`/api/health` → `status: ok`) · 8 seeded reports.
 
+**Current verified run:** Jenkins build **#11 SUCCESS** (14/14 tests), with Docker cleaned
+to the single working `civiclens:latest` image plus the two required base images.
+
 ---
 
 ## 1. Suggested presentation order
@@ -51,7 +54,7 @@ All app/Jenkins screenshots are **1600 × 1000**; Docker Desktop screenshots are
 
 ### Build-history note
 
-- Builds **#3, #4, #5, #7, #8, #9 and #10** are green; **#10** is the latest successful run shown throughout.
+- Builds **#3, #4, #5, #7, #8, #9, #10 and #11** are green; the screenshots capture **#10**, and **#11** is the latest successful run.
 - Builds **#1–#2** are the two early failures documented in
   [`../docs/PROJECT_REPORT.md`](../docs/PROJECT_REPORT.md) §5.3: a cold-start deploy race
   and the Jenkins-container `localhost`/network-namespace issue. Both were fixed with a

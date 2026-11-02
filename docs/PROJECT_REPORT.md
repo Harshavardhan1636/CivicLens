@@ -111,7 +111,7 @@ The Jenkinsfile is cross-platform: `isUnix()` selects `sh` (Linux agents) or `ba
 4. Verify: `curl http://localhost:5000/api/health` → `{"status":"ok",…}`; `python -m pytest tests/ -v` → *14 passed*.
 5. Push a commit → *Build Now* again (or add a GitHub webhook for auto-build).
 
-**Verified build history:** #1 failed on a fixed 8s deploy wait (cold-start race), #2 failed because the agent's `localhost` isn't the app's network namespace — both fixed (retry loop + `compose exec` healthcheck). **#3 onward green; latest #10 SUCCESS (14 tests, healthy deploy).**
+**Verified build history:** #1 failed on a fixed 8s deploy wait (cold-start race), #2 failed because the agent's `localhost` isn't the app's network namespace — both fixed (retry loop + `compose exec` healthcheck). **#3 onward green; latest #11 SUCCESS (14 tests, healthy deploy).**
 
 **Jenkins installation used here:** `jenkins/jenkins:lts` container (port 8080), admin user via init script, `git` + `workflow-aggregator` plugins, agent toolchain (Python 3 + pip, Docker CLI + Compose v2 over the host socket). The pipeline checks out this public repo anonymously — no credentials to configure.
 
